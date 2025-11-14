@@ -1,0 +1,12 @@
+{
+  "src/main.tsx": {
+    "file": "main.mjs",
+    "name": "main",
+    "src": "src/main.tsx",
+    "isEntry": true,
+    "assets": [
+      "assets/image-DoMMdsHY.webp",
+      "assets/orto-BSd7NXA2.png"
+    ]
+  }
+}

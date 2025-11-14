@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useRef, useState } from 'react'
 import {
   Box,
   Button,
@@ -17,12 +18,38 @@ import { WhySection } from './components/WhySection'
 import { services } from './data/services'
 import { whyData } from './data/why'
 import { Controller, useForm } from 'react-hook-form'
+import axios from 'axios'
+
+/**
+ * Генерирует UUID версии 4
+ * @returns {string} UUID в формате 8-4-4-4-12 шестнадцатеричных символов
+ */
+function generateUUIDv4(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (crypto.getRandomValues(new Uint8Array(1))[0] & 0xf) >> (c === 'x' ? 0 : 1)
+    const v = c === 'x' ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
 
 function App() {
   const formRef = useRef<HTMLDivElement>(null)
+  const searchParams = new URLSearchParams(window.location.search);
 
-  const scrollToForm = () => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth' })
+  // Извлекаем значение параметра region
+  const region = searchParams.get('region');
+
+  const scrollToForm = async () => {
+    /**
+     * Тут отправить событие scrollDown
+     */
+    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+    const response = await axios.get('https://www.za-zdoroviem.ru/count.php', { params: { referer: document?.referrer, event: 'scrolldown', region } })
+    const data = response.data
+
+    console.log(data)
   }
 
   const [isOpenSuccess, setIsOpenSuccess] = useState(false)
@@ -32,9 +59,36 @@ function App() {
     handleSubmit
   } = useForm()
 
-  const onSubmit = () => {
+  const onSubmit = async (data: {name: string, phone: string}) => {
+    const {name, phone} = data
     setIsOpenSuccess(true)
+    const response = await axios.get('https://www.za-zdoroviem.ru/count.php', { params: { event: 'click', referer: document?.referrer, region, name, phone} })
+
+    if (response) {
+      const data = response.data
+      console.log('GET response:', data);
+    }
   }
+
+  const handleGetLogin = async () => {
+    const response = await axios.get('https://www.za-zdoroviem.ru/count.php', { params: { referer: document?.referrer, event: 'enter', region } })
+    const data = response.data
+    console.log(data)
+  }
+
+  useEffect(() => {
+    const localValue = localStorage.getItem('uuid')
+
+    if (!localValue) {
+      const uuid = generateUUIDv4()
+      localStorage.setItem('uuid', uuid)
+      /**
+       * Отправляем событие о входе
+       */
+      handleGetLogin()
+
+    }
+  }, [])
 
   return (
     <Flex direction='column' maxWidth='100vw' style={{ backgroundColor: '#F2F7FF' }} width='100vw'>
@@ -145,7 +199,7 @@ function App() {
           </Flex>
         </Flex>
       </Flex>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit as unknown as any)}>
         <Flex ref={formRef} align='center' direction='column' mb='100px' pb='40px' pt='20px' px='20px' style={{ background: '#D5DEFF' }}>
           <Text as='div' style={{ fontSize: '25px', lineHeight: '29px', marginInline: 'auto' }} weight='bold'>Оставить заявку</Text>
           <Box maxWidth='390px'>

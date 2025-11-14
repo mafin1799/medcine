@@ -1,7 +1,9 @@
 import App from './App.tsx'
-import { ViteReactSSG } from 'vite-react-ssg/single-page'
 import "@radix-ui/themes/styles.css";
 import './index.css'
 import { Theme } from '@radix-ui/themes';
+import { createRoot } from 'react-dom/client';
 
-export const createRoot = ViteReactSSG(<Theme><App/></Theme>,)
+createRoot(document.getElementById('root')!).render(
+ <Theme><App/></Theme>
+)
